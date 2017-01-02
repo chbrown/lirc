@@ -11,7 +11,7 @@ type TextListener struct {
 }
 
 // no options
-func NewTextListener() *TextListener {
+func NewTextListener() Listener {
 	return &TextListener{}
 }
 

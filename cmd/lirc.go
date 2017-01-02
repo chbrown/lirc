@@ -12,46 +12,50 @@ func listenChan(oldc chan *irc.Message, fn func(*irc.Message)) chan *irc.Message
 	go func() {
 		for {
 			m := <-oldc
-			fn(m)
 			c <- m
+			fn(m)
 		}
 	}()
 	return c
 }
 
-func contains(haystack []string, needle string) bool {
-	for _, straw := range haystack {
-		if straw == needle {
-			return true
-		}
-	}
-	return false
+var listenerFuncs = map[string](func() lirc.Listener){
+	"text": lirc.NewTextListener,
+	"json": lirc.NewJsonListener,
 }
 
 func main() {
 	config := lirc.ParseFlags()
+
+	log.Println("Connecting with config:", config)
 
 	conn, err := lirc.IrcDial(config.Addr, config.Tls)
 	if err != nil {
 		log.Panicln("IRC Connection Dial error", err)
 	}
 
-	var outputListener lirc.Listener
-	if contains(config.Outputs, "text") {
-		outputListener = lirc.NewTextListener()
-	} else {
-		outputListener = lirc.NewJsonListener()
+	listeners := make([]lirc.Listener, len(config.Outputs))
+	for i, output := range config.Outputs {
+		listeners[i] = listenerFuncs[output]()
 	}
 
 	// set up pipeline
 	inbox := make(chan *irc.Message)
 	conn.ReadToChan(inbox)
 	// wrap inbox in a listener
-	inbox = listenChan(inbox, outputListener.Incoming)
+	inbox = listenChan(inbox, func(m *irc.Message) {
+		for _, listener := range listeners {
+			listener.Incoming(m)
+		}
+	})
 
 	outbox := make(chan *irc.Message)
 	// wrap outbox in a listener
-	deliverbox := listenChan(outbox, outputListener.Outgoing)
+	deliverbox := listenChan(outbox, func(m *irc.Message) {
+		for _, listener := range listeners {
+			listener.Outgoing(m)
+		}
+	})
 	conn.WriteFromChan(deliverbox)
 
 	// send desired nickname to server

@@ -12,7 +12,7 @@ type JsonListener struct {
 }
 
 // no options
-func NewJsonListener() *JsonListener {
+func NewJsonListener() Listener {
 	return &JsonListener{}
 }
 
