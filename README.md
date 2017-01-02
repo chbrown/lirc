@@ -12,7 +12,7 @@ Not a regular [Go](https://golang.org/) user?
 
 Now you're a regular Go user! Install:
 
-    go get github.com/chbrown/lirc
+    go get github.com/chbrown/lirc/cmd/lirc
 
 Run:
 
