@@ -6,13 +6,13 @@ import (
 	"github.com/sorcix/irc"
 )
 
-type TextTransformer struct {
-	Transformer
+type TextListener struct {
+	Listener
 }
 
 // no options
-func NewTextTransformer() *TextTransformer {
-	return &TextTransformer{}
+func NewTextListener() *TextListener {
+	return &TextListener{}
 }
 
 func fmtPrefix(p *irc.Prefix) string {
@@ -26,11 +26,9 @@ func fmtMessage(m *irc.Message) string {
 	return fmt.Sprintf("%s %s %v: %s", fmtPrefix(m.Prefix), m.Command, m.Params, m.Trailing)
 }
 
-func (_ *TextTransformer) Incoming(m *irc.Message) *irc.Message {
+func (_ *TextListener) Incoming(m *irc.Message) {
 	log.Printf("-> %s   \n", fmtMessage(m))
-	return m
 }
-func (_ *TextTransformer) Outgoing(m *irc.Message) *irc.Message {
+func (_ *TextListener) Outgoing(m *irc.Message) {
 	log.Printf("   %s ->\n", fmtMessage(m))
-	return m
 }

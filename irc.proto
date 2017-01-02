@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+// build like:
+//   protoc --go_out=. *.proto
+
+package lirc;
+
+enum ActionType {
+  MESSAGE = 0;
+  JOIN = 1;
+  QUIT = 2;
+  NICK = 3;
+}
+
+message Actor {
+  string name = 1;
+  string user = 2;
+  string host = 3;
+}
+
+message ChannelAction {
+  // timestamp in seconds since Unix epoch
+  int64 timestamp = 1;
+  // Message.Prefix
+  Actor actor = 2;
+  // channel name
+  string name = 3;
+  // Message.Command
+  ActionType type = 4;
+  // Message.Trailing
+  string message = 5;
+}

@@ -2,67 +2,22 @@ package main
 
 import (
 	"flag"
-	"io"
 	"log"
-	"strings"
 	"github.com/sorcix/irc"
 	"github.com/chbrown/lirc"
 )
 
-// create a (sync) receiving chan and read all messages from conn into it
-func decoderChan(conn *irc.Conn) <-chan *irc.Message {
+// reads from oldc, runs a function, writes to new chan
+func listenChan(oldc chan *irc.Message, fn func (*irc.Message)) chan *irc.Message {
 	c := make(chan *irc.Message)
-	outputTransformer := lirc.NewTextTransformer()
 	go func() {
 		for {
-			// conn.Decode() returns a (*Message, error)
-			m, err := conn.Decode()
-			if err != nil {
-				// we log but otherwise swallow the error here
-				if err == io.EOF {
-					log.Println("IRC Connection reached EOF")
-				} else {
-					log.Println("IRC Connection Decode error", err)
-				}
-				close(c)
-				// avoid adding the Message accompanying the error to the chan
-				break
-			}
-			outputTransformer.Incoming(m)
+			m := <-oldc
+			fn(m)
 			c <- m
 		}
 	}()
 	return c
-}
-
-// create a sending chan that writes its messages to conn
-func encoderChan(conn *irc.Conn) chan<- *irc.Message {
-	c := make(chan *irc.Message)
-	outputTransformer := lirc.NewTextTransformer()
-	go func() {
-		for {
-			m := <-c
-			outputTransformer.Outgoing(m)
-			err := conn.Encode(m)
-			if err != nil {
-				log.Println("IRC Connection Encode error", err)
-				close(c)
-				break
-			}
-		}
-	}()
-	return c
-}
-
-// prefix the given channel with a # if it does not already start with # or &
-func addDefaultPrefix(channel string) string {
-	if strings.HasPrefix(channel, "#") {
-		return channel
-	}
-	if strings.HasPrefix(channel, "&") {
-		return channel
-	}
-	return "#" + channel
 }
 
 func main() {
@@ -80,8 +35,19 @@ func main() {
 	if err != nil {
 		log.Panicln("IRC Connection Dial error", err)
 	}
-	inbox := decoderChan(conn)
-	outbox := encoderChan(conn)
+
+	outputListener := lirc.NewJsonListener()
+
+	// set up pipeline
+	inbox := make(chan *irc.Message)
+	conn.ReadToChan(inbox)
+	// wrap inbox in a listener
+	inbox = listenChan(inbox, outputListener.Incoming)
+
+	outbox := make(chan *irc.Message)
+	// wrap outbox in a listener
+	deliverbox := listenChan(outbox, outputListener.Outgoing)
+	conn.WriteFromChan(deliverbox)
 
 	// send desired nickname to server
 	outbox <- &irc.Message{
@@ -110,7 +76,7 @@ func main() {
 				// TODO: JOIN all channels at once
 				outbox <- &irc.Message{
 					Command: irc.JOIN,
-					Params:  []string{addDefaultPrefix(channel)},
+					Params:  []string{lirc.AddDefaultPrefix(channel)},
 				}
 			}
 		}
