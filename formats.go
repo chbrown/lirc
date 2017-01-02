@@ -1,8 +1,8 @@
 package lirc
 
 import (
-	"time"
 	"github.com/sorcix/irc"
+	"time"
 )
 
 func toActor(p *irc.Prefix) *Actor {
@@ -42,9 +42,9 @@ func ToChannelAction(m *irc.Message) *ChannelAction {
 	}
 	return &ChannelAction{
 		Timestamp: time.Now().Unix(),
-		Actor: toActor(m.Prefix),
-		Name: channel,
-		Type: action_type,
-		Message: message,
+		Actor:     toActor(m.Prefix),
+		Name:      channel,
+		Type:      action_type,
+		Message:   message,
 	}
 }

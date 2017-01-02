@@ -2,8 +2,8 @@ package lirc
 
 import (
 	"fmt"
-	"log"
 	"github.com/sorcix/irc"
+	"log"
 )
 
 type TextListener struct {
