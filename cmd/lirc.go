@@ -1,14 +1,13 @@
 package main
 
 import (
-	"flag"
-	"log"
-	"github.com/sorcix/irc"
 	"github.com/chbrown/lirc"
+	"github.com/sorcix/irc"
+	"log"
 )
 
 // reads from oldc, runs a function, writes to new chan
-func listenChan(oldc chan *irc.Message, fn func (*irc.Message)) chan *irc.Message {
+func listenChan(oldc chan *irc.Message, fn func(*irc.Message)) chan *irc.Message {
 	c := make(chan *irc.Message)
 	go func() {
 		for {
@@ -20,23 +19,29 @@ func listenChan(oldc chan *irc.Message, fn func (*irc.Message)) chan *irc.Messag
 	return c
 }
 
+func contains(haystack []string, needle string) bool {
+	for _, straw := range haystack {
+		if straw == needle {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
-	var addr, nick, user string
-	var tls bool
-	flag.StringVar(&addr, "addr", "irc.freenode.net", "server in 'hostname:port' format")
-	flag.BoolVar(&tls, "tls", false, "connect to <addr> with SSL/TLS")
-	flag.StringVar(&nick, "nick", "", "nickname")
-	flag.StringVar(&user, "user", "anonymous", "username")
-	flag.Parse()
+	config := lirc.ParseFlags()
 
-	channels := flag.Args()
-
-	conn, err := lirc.IrcDial(addr, tls)
+	conn, err := lirc.IrcDial(config.Addr, config.Tls)
 	if err != nil {
 		log.Panicln("IRC Connection Dial error", err)
 	}
 
-	outputListener := lirc.NewJsonListener()
+	var outputListener lirc.Listener
+	if contains(config.Outputs, "text") {
+		outputListener = lirc.NewTextListener()
+	} else {
+		outputListener = lirc.NewJsonListener()
+	}
 
 	// set up pipeline
 	inbox := make(chan *irc.Message)
@@ -52,14 +57,15 @@ func main() {
 	// send desired nickname to server
 	outbox <- &irc.Message{
 		Command: irc.NICK,
-		Params:  []string{nick},
+		Params:  []string{config.Nickname},
 	}
 
 	// send username and "real" name to server
 	outbox <- &irc.Message{
-		Command:  irc.USER,
-		Params:   []string{user, "8", "*"},
-		Trailing: "Anonymous",
+		Command: irc.USER,
+		// <mode> options: 12 = invisible+wallops, 8 = invisible, 4 = wallops, 0 = no special mode
+		Params:   []string{config.Username, "8", "*"},
+		Trailing: config.Realname,
 	}
 
 	// main loop
@@ -72,11 +78,11 @@ func main() {
 				Trailing: m.Trailing,
 			}
 		case irc.RPL_WELCOME:
-			for _, channel := range channels {
+			for _, channel := range config.Channels {
 				// TODO: JOIN all channels at once
 				outbox <- &irc.Message{
 					Command: irc.JOIN,
-					Params:  []string{lirc.AddDefaultPrefix(channel)},
+					Params:  []string{channel},
 				}
 			}
 		}
