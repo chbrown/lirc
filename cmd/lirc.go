@@ -27,8 +27,6 @@ var listenerFuncs = map[string](func() lirc.Listener){
 func main() {
 	config := lirc.ParseFlags()
 
-	log.Println("Connecting with config:", config)
-
 	conn, err := lirc.IrcDial(config.Addr, config.Tls)
 	if err != nil {
 		log.Panicln("IRC Connection Dial error", err)
