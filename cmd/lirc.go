@@ -20,6 +20,7 @@ func listenChan(oldc chan *irc.Message, fn func(*irc.Message)) chan *irc.Message
 }
 
 var listenerFuncs = map[string](func() lirc.Listener){
+	"raw":  lirc.NewRawListener,
 	"text": lirc.NewTextListener,
 	"json": lirc.NewJsonListener,
 }
