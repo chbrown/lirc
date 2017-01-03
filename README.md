@@ -77,4 +77,4 @@ This package, `lirc`, depends on the latter (`github.com/sorcix/irc`).
 
 ## License
 
-Copyright © 2016 Christopher Brown. [MIT Licensed](https://chbrown.github.io/licenses/MIT/#2016).
+Copyright © 2016–2017 Christopher Brown. [MIT Licensed](https://chbrown.github.io/licenses/MIT/#2016-2017).
