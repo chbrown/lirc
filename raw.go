@@ -18,7 +18,7 @@ func NewRawListener() Listener {
 }
 
 func timestamp() string {
-	return time.Now().UTC().Format("2006-01-02T15:04:05.999Z")
+	return time.Now().UTC().Format("2006-01-02T15:04:05.000Z")
 }
 
 func (listener *RawListener) Incoming(m *irc.Message) {
