@@ -21,7 +21,6 @@ Run:
 Arguments:
 
 * `-help` Show all flags along with their short descriptions and defaults.
-
 * `-addr` IRC server hostname + optional port
   - If missing, the default port is 6697 if `-tls` is specified, or 6667 if not
 * `-tls` Connect to `addr` with SSL/TLS
