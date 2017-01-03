@@ -2,8 +2,8 @@
 
 Read-only IRC logger / crawler.
 
-* Pronounced "lurk."
-* _Not_ [Linux Infrared Remote Control](https://www.google.com/search?q=lirc).
+* Pronounced "lurk"
+* _Not_ [Linux Infrared Remote Control](https://www.google.com/search?q=lirc)
 
 Not a regular [Go](https://golang.org/) user?
 
@@ -20,11 +20,21 @@ Run:
 
 Arguments:
 
-* `-addr` IRC server hostname
+* `-help` Show all flags along with their short descriptions and defaults.
+
+* `-addr` IRC server hostname + optional port
+  - If missing, the default port is 6697 if `-tls` is specified, or 6667 if not
+* `-tls` Connect to `addr` with SSL/TLS
 * `-nick` Your desired nickname
+* `-user` Your desired username, which some IRC servers require before they'll acknowledge your JOIN requests
+* `-real` The realname to accompany the username
+* `-out` Output format(s) to write; can be multiple, comma-separated (since they all write to `stdout`, multiple outputs aren't terribly useful yet, but I'm planning to write an InfluxDB output)
+  + `raw` Raw IRC protocol with timestamps and direction indicators
+  + `text` Colorful text
+  + `json` Filtered Protobuf+JSON
 * Remaining strings: channels to watch
-  - `#` will be prepended to channel names that start without a `#`, to avoid having to quote these arguments, since most shells consider `#` a comment indicator.
-    But if you want to join, for example, `##linux`, just use `\##linux` or `'##linux'`.
+  - `#` will be prepended to channel names that don't start with a `#` or `&`, to avoid having to quote these arguments, since most shells interpret those as special characters.
+  - If you want to join a room that starts with two hashes, like `##linux`, then you have to quote it, e.g. `\##linux` or `'##linux'`.
 
 
 ## References
