@@ -43,8 +43,8 @@ func (listener *TextListener) printMessage(m *irc.Message, direction string) {
 }
 
 func (listener *TextListener) Incoming(m *irc.Message) {
-	listener.printMessage(m, whiteOnBlack("<-"))
+	listener.printMessage(m, blackOnWhite("<-"))
 }
 func (listener *TextListener) Outgoing(m *irc.Message) {
-	listener.printMessage(m, blackOnWhite("->"))
+	listener.printMessage(m, whiteOnBlack("->"))
 }
